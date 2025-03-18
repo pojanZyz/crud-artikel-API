@@ -1,5 +1,5 @@
 const Article = require('../models/Article');
-const {createClient} = require("../config/supabase")
+const supabase = require("../config/supabase")
 
 exports.getArticles = (req, res) => {
   Article.getAll((err, results) => {
