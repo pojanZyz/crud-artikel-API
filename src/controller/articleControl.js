@@ -27,7 +27,7 @@ exports.createArticle = async (req, res) => {
         .upload(filePath, req.file.buffer, { contentType: req.file.mimetype });
 
       if (error) throw error;
-      imageUrl = `${supabaseUrl}/storage/v1/object/public/uploads/${filePath}`;
+      imageUrl = `${supabase.storage.from("uploads").getPublicUrl(filePath).data.publicUrl}`;
     }
 
     const data = {
