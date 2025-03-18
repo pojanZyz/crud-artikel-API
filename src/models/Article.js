@@ -14,11 +14,8 @@ const Article = {
   },
   delete: (id, callback) => {
     db.query('DELETE FROM articles WHERE id = ?', [id], callback);
-    db.query('SET @max_id = (SELECT IFNULL(MAX(id), 0) FROM articles);', callback);
-    db.query('SET @query = CONCAT("ALTER TABLE articles AUTO_INCREMENT = ", @max_id + 1);', callback);
-    db.query('PREPARE stmt FROM @query;',callback);
-    db.query('EXECUTE stmt;', callback);
-    db.query('DEALLOCATE PREPARE stmt;', callback);
+    db.query('SET @new_id = 0;', callback);
+    db.query('UPDATE articles SET id = (@new_id := @new_id + 1);', callback);
   }
 };
 
