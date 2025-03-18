@@ -77,15 +77,7 @@ exports.updateArticle = (req, res) => {
       // Pastikan ada data dulu sebelum reset
       Article.checkIfEmpty((err, isEmpty) => {
         if (err) return res.status(500).json(err);
-  
-        if (isEmpty) {
-          Article.resetAutoIncrement((err) => {
-            if (err) return res.status(500).json(err);
-            res.json({ message: "Article deleted and auto-increment reset" });
-          });
-        } else {
-          res.json({ message: "Article deleted" });
-        }
+        res.json({ message: "Article deleted" });
       });
     });
   };
