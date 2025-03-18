@@ -79,7 +79,7 @@ exports.updateArticle = (req, res) => {
         if (err) return res.status(500).json(err);
   
         if (isEmpty) {
-          Article.delete((err) => {
+          Article.resetAutoIncrement((err) => {
             if (err) return res.status(500).json(err);
             res.json({ message: "Article deleted and auto-increment reset" });
           });
