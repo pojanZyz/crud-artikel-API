@@ -70,9 +70,23 @@ exports.updateArticle = (req, res) => {
     });
   };
 
-exports.deleteArticle = (req, res) => {
-  Article.delete(req.params.id, (err, results) => {
-    if (err) return res.status(500).json(err);
-    res.json({ message: "Article deleted" });
-  });
-};
+  exports.deleteArticle = (req, res) => {
+    Article.delete(req.params.id, (err, results) => {
+      if (err) return res.status(500).json(err);
+  
+      // Pastikan ada data dulu sebelum reset
+      Article.checkIfEmpty((err, isEmpty) => {
+        if (err) return res.status(500).json(err);
+  
+        if (isEmpty) {
+          Article.resetAutoIncrement((err) => {
+            if (err) return res.status(500).json(err);
+            res.json({ message: "Article deleted and auto-increment reset" });
+          });
+        } else {
+          res.json({ message: "Article deleted" });
+        }
+      });
+    });
+  };
+  

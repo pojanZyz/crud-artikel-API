@@ -1,10 +1,4 @@
 const db = require('../config/database');
-
-const query = `
-SET @new_ai = (SELECT COALESCE(MAX(id), 0) + 1 FROM articles);
-ALTER TABLE articles AUTO_INCREMENT = @new_ai;
-`;
-
 const Article = {
   getAll: (callback) => {
     db.query('SELECT * FROM articles', callback);
@@ -20,6 +14,7 @@ const Article = {
   },
   delete: (id, callback) => {
     db.query('DELETE FROM articles WHERE id = ?', [id], callback);
+    const query = "ALTER TABLE articles AUTO_INCREMENT = 1";
     db.query(query, callback);
   }
 };
