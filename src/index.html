@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Articles</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Manage Articles</h1>
+    
+    <form id="article-form">
+        <input type="hidden" id="article-id">
+        <label>Title: <input type="text" id="title" required></label>
+        <label>Category: 
+            <select id="category" required>
+                <option value="WISATA">Wisata</option>
+                <option value="BUDAYA">Budaya</option>
+            </select>
+        </label>
+        <label>Location: <input type="text" id="location" required></label>
+        <label>Image: <input type="file" id="image"></label>
+        <button type="submit">Save</button>
+    </form>
+    
+    <h2>Articles List</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Location</th>
+                <th>Image</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="articles-table"></tbody>
+    </table>
+
+    <script>
+        const API_URL = 'http://localhost:3306/articles';
+
+        async function fetchArticles() {
+            const response = await fetch(API_URL);
+            const articles = await response.json();
+            const tableBody = document.getElementById('articles-table');
+            tableBody.innerHTML = '';
+            articles.forEach(article => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${article.id}</td>
+                    <td>${article.title}</td>
+                    <td>${article.category}</td>
+                    <td>${article.location}</td>
+                    <td><img src="./uploads/${article.image}" width="100"></td>
+                    <td>
+                        <button onclick="editArticle(${article.id}, '${article.title}', '${article.category}', '${article.location}', '${article.image}')">Edit</button>
+                        <button onclick="deleteArticle(${article.id})">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        async function saveArticle(event) {
+            event.preventDefault();
+            const id = document.getElementById('article-id').value;
+            const title = document.getElementById('title').value;
+            const category = document.getElementById('category').value;
+            const location = document.getElementById('location').value;
+            const image = document.getElementById('image').files[0];
+            
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('category', category);
+            formData.append('location', location);
+            if (image) formData.append('image', image);
+            
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/${id}` : API_URL;
+            
+            await fetch(url, { method, body: formData });
+            document.getElementById('article-form').reset();
+            fetchArticles();
+        }
+
+        async function deleteArticle(id) {
+            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            fetchArticles();
+        }
+
+        function editArticle(id, title, category, location, image) {
+        document.getElementById('article-id').value = id;
+        document.getElementById('title').value = title;
+        document.getElementById('category').value = category;
+        document.getElementById('location').value = location;
+
+        // Mengatur kategori yang sesuai
+        document.getElementById('category').value = category.toUpperCase(); 
+
+        // Menampilkan nama gambar lama (jika ada)
+        document.getElementById('image').setAttribute("data-existing", image);
+    }
+
+        document.getElementById('article-form').addEventListener('submit', saveArticle);
+        fetchArticles();
+    </script>
+</body>
+</html>
