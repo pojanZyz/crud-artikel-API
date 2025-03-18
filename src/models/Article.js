@@ -14,13 +14,8 @@ const Article = {
   },
   delete: (id, callback) => {
     db.query('DELETE FROM articles WHERE id = ?', [id], callback);
-  },
-  resetAutoIncrement: (callback)=>{
-    const query = "SELECT COUNT(*) AS total FROM articles";
-    db.query(query, (err, results) => {
-      if (err) return callback(err, null);
-      callback(null, results[0].total === 0);
-    });
+    const query = "ALTER TABLE articles AUTO_INCREMENT = 1";
+    db.query(query, callback);
   }
 };
 

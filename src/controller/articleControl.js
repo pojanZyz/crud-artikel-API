@@ -96,10 +96,6 @@ exports.updateArticle = async (req, res) => {
   exports.deleteArticle = (req, res) => {
     Article.delete(req.params.id, (err, results) => {
       if (err) return res.status(500).json(err);
-          Article.resetAutoIncrement((err) => {
-            if (err) return res.status(500).json(err);
-            res.json({ message: "Article deleted and auto-increment reset" });
-          });
       });
     };
   
