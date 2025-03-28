@@ -30,7 +30,7 @@ exports.getArticleById = async (req, res) => {
 exports.createArticle = async (req, res) => {
   try {
     let imageUrl = null;
-
+    
     if (req.file) {
       const filePath = `articles/${Date.now()}-${req.file.originalname}`;
       const { data, error } = await supabase.storage
@@ -38,10 +38,10 @@ exports.createArticle = async (req, res) => {
         .upload(filePath, req.file.buffer, { contentType: req.file.mimetype });
 
       if (error) throw error;
-      imageUrl = supabase.storage.from("uploads").getPublicUrl(filePath).data.publicUrl;
+      imageUrl = supabase.storage.from("uploads").getPublicUrl(filePath);
     }
 
-    const newArticle = await Article.createArticle({
+    const newArticle = await Article.create({
       title: req.body.title,
       category: req.body.category,
       location: req.body.location,
