@@ -29,17 +29,21 @@ exports.getArticleById = async (req, res) => {
 // Buat artikel baru
 exports.createArticle = async (req, res) => {
   try {
-    let imageUrl = null;
-    
-    if (req.file) {
-      const filePath = `articles/${Date.now()}-${req.file.originalname}`;
-      const { data, error } = await supabase.storage
-        .from("uploads")
-        .upload(filePath, req.file.buffer, { contentType: req.file.mimetype });
+    console.log("REQ BODY:", req.body);
+    console.log("REQ FILE:", req.file); // Cek apakah file masuk
 
-      if (error) throw error;
-      imageUrl = supabase.storage.from("uploads").getPublicUrl(filePath);
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
     }
+
+    let imageUrl = null;
+    const filePath = `articles/${Date.now()}-${req.file.originalname}`;
+    const { error } = await supabase.storage
+      .from("uploads")
+      .upload(filePath, req.file.buffer, { contentType: req.file.mimetype });
+
+    if (error) throw error;
+    imageUrl = supabase.storage.from("uploads").getPublicUrl(filePath);
 
     const newArticle = await Article.create({
       title: req.body.title,
@@ -50,9 +54,11 @@ exports.createArticle = async (req, res) => {
 
     res.json({ message: "Article created", article: newArticle });
   } catch (error) {
+    console.error("ERROR:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // Update artikel
 exports.updateArticle = async (req, res) => {
