@@ -11,9 +11,9 @@ dotenv.config();
 const app = express();
 app.use(ensureUploadsFolder);
 app.use(cors());
+app.use(bodyParser.json());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(bodyParser.json());
 app.use('./img', express.static('./img'));
 app.use('/articles', articleRoutes);
 
