@@ -34,27 +34,55 @@ const Article = sequelize.define(
 
 // Fungsi untuk mengambil semua artikel
 Article.getAll = async function () {
-  return await this.findAll();
+  try {
+    return await this.findAll();
+  } catch (error) {
+    console.error("Error in getAll:", error);
+    throw error;
+  }
 };
+
 
 // Fungsi untuk mengambil artikel berdasarkan ID
 Article.getById = async function (id) {
-  return await this.findByPk(id);
+  try{
+    return await this.findByPk(id);
+  }catch (error) {
+    console.error("Error in getById:", error);
+    throw error;
+  }
 };
 
 // Fungsi untuk membuat artikel baru
 Article.createArticle = async function (data) {
-  return await this.create(data);
+  try{
+    return await this.create(data);
+  }catch (error) {
+    console.error("Error in createArticle:", error);
+    throw error;
+  }
+  
 };
 
 // Fungsi untuk memperbarui artikel
 Article.updateArticle = async function (id, data) {
-  return await this.update(data, { where: { id } });
+  try{
+    return await this.update(data, { where: { id } });
+  }catch (error) {
+    console.error("Error in updateArticle:", error);
+    throw error;
+  }
+  
 };
 
 // Fungsi untuk menghapus artikel
 Article.deleteArticle = async function (id) {
-  return await this.destroy({ where: { id } });
+  try{
+    return await this.destroy({ where: { id } });
+  }catch (error) {
+    console.error("Error in deleteArticle:", error);
+    throw error;
+  }
 };
 
 module.exports = Article;

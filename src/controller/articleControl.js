@@ -5,11 +5,14 @@ const supabase = require("../config/supabase");
 exports.getArticles = async (req, res) => {
   try {
     const articles = await Article.getAll();
+    console.log("Fetched Articles:", articles); // Debugging log
     res.json(articles);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch articles" });
+    console.error("Error fetching articles:", error); // Logging error
+    res.status(500).json({ error: error.message });
   }
 };
+
 
 // Ambil artikel berdasarkan ID
 exports.getArticleById = async (req, res) => {
@@ -18,7 +21,8 @@ exports.getArticleById = async (req, res) => {
     if (!article) return res.status(404).json({ message: "Article not found" });
     res.json(article);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch article" });
+    console.error("Error fetching articles:", error); // Logging error
+    res.status(500).json({ error: error.message });
   }
 };
 
