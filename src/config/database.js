@@ -1,19 +1,15 @@
-const mysql = require('mysql2');
+const { Sequelize } = require('sequelize');
 const dotenv = require('dotenv');
 
 dotenv.config();
 
-const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-  connectTimeout: 10000 // Tambahkan timeout lebih lama (10 detik)
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: 'postgres',
+  logging: false
 });
 
-db.connect(err => {
-  if (err) throw err;
-  console.log('Connected to MySQL');
-});
+sequelize.authenticate()
+  .then(() => console.log('Connected to PostgreSQL'))
+  .catch(err => console.error('Unable to connect to PostgreSQL:', err));
 
-module.exports = db;
+module.exports = sequelize;

@@ -1,22 +1,23 @@
-const db = require('../config/database');
-const Article = {
-  getAll: (callback) => {
-    db.query('SELECT * FROM articles', callback);
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
+
+const Article = sequelize.define('Article', {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
   },
-  getById: (id, callback) => {
-    db.query('SELECT * FROM articles WHERE id = ?', [id], callback);
+  title: {
+    type: DataTypes.STRING,
+    allowNull: false
   },
-  create: (data, callback) => {
-    db.query('INSERT INTO articles SET ?', data, callback);
-  },
-  update: (id, data, callback) => {
-    db.query('UPDATE articles SET ? WHERE id = ?', [data, id], callback);
-  },
-  delete: (id, callback) => {
-    db.query('DELETE FROM articles WHERE id = ?', [id], callback);
-    db.query('SET @new_id = 0;', callback);
-    db.query('UPDATE articles SET id = (@new_id := @new_id + 1);', callback);
+  content: {
+    type: DataTypes.TEXT,
+    allowNull: false
   }
-};
+}, {
+  tableName: 'articles',
+  timestamps: true
+});
 
 module.exports = Article;
