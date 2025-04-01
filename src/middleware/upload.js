@@ -1,14 +1,6 @@
 const multer = require("multer");
 
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 4 * 1024 * 1024 }, // Maksimum 4MB (karena Vercel batasnya sekitar 4.5MB)
-  fileFilter: (req, file, cb) => {
-    if (!file.mimetype.startsWith("image/")) {
-      return cb(new Error("Only images are allowed!"), false);
-    }
-    cb(null, true);
-  },
-});
+const storage = multer.memoryStorage(); // Simpan file di memori, bukan di disk
+const upload = multer({ storage });
 
-module.exports = { upload };
+module.exports = upload;

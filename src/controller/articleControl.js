@@ -1,115 +1,184 @@
-const Article = require("../models/Article");
+const Article = require('../models/Article');
 const supabase = require("../config/supabase");
 
-// Ambil semua artikel
 exports.getArticles = async (req, res) => {
   try {
-    const articles = await Article.getAll();
-    console.log("Fetched Articles:", articles); // Debugging log
-    res.json(articles);
+    const { data, error } = await supabase.from('articles').select('*');
+    if (error) throw error;
+    res.json(data);
   } catch (error) {
-    console.error("Error fetching articles:", error); // Logging error
     res.status(500).json({ error: error.message });
   }
 };
 
-
-// Ambil artikel berdasarkan ID
 exports.getArticleById = async (req, res) => {
   try {
-    const article = await Article.getById(req.params.id);
-    if (!article) return res.status(404).json({ message: "Article not found" });
-    res.json(article);
+    const { data, error } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
+    if (error) throw error;
+    res.json(data);
   } catch (error) {
-    console.error("Error fetching articles:", error); // Logging error
     res.status(500).json({ error: error.message });
   }
 };
 
-// Buat artikel baru
 exports.createArticle = async (req, res) => {
   try {
-    console.log("REQ BODY:", req.body);
-    console.log("REQ FILE:", req.file); // Cek apakah file masuk
+    let imageUrl = null;
 
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
+    if (req.file) {
+      console.log('Uploading image to Supabase...');
+      const filePath = `articles/${Date.now()}-${req.file.originalname}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("uploads")
+        .upload(filePath, req.file.buffer, { contentType: req.file.mimetype });
+
+      if (uploadError) {
+        console.error('Error uploading image:', uploadError.message);
+        throw new Error('Failed to upload image to Supabase.');
+      }
+
+      const { data: publicUrlData, error: publicUrlError } = supabase.storage
+        .from("uploads")
+        .getPublicUrl(filePath);
+
+      if (publicUrlError) {
+        console.error('Error generating public URL:', publicUrlError.message);
+        throw new Error('Failed to generate public URL for the image.');
+      }
+
+      imageUrl = publicUrlData.publicUrl;
+      console.log('Public URL generated successfully:', imageUrl);
     }
 
-    let imageUrl = null;
-    const filePath = `articles/${Date.now()}-${req.file.originalname}`;
-    const { error } = await supabase.storage
-      .from("uploads")
-      .upload(filePath, req.file.buffer, { contentType: req.file.mimetype });
+    const { title, category, location } = req.body;
+
+    console.log('Data to insert:', { title, category, location, image: imageUrl });
+
+    const { error } = await supabase
+      .from('articles')
+      .insert([{ title, category, location, image: imageUrl }]);
 
     if (error) throw error;
-    imageUrl = supabase.storage.from("uploads").getPublicUrl(filePath);
 
-    const newArticle = await Article.create({
-      title: req.body.title,
-      category: req.body.category,
-      location: req.body.location,
-      image: imageUrl,
-    });
-
-    res.json({ message: "Article created", article: newArticle });
+    res.json({ message: "Article created successfully" });
   } catch (error) {
-    console.error("ERROR:", error.message);
+    console.error('Error in createArticle:', error.message);
     res.status(500).json({ error: error.message });
   }
 };
 
-
-// Update artikel
 exports.updateArticle = async (req, res) => {
   try {
-    const article = await Article.getById(req.params.id);
-    if (!article) return res.status(404).json({ message: "Article not found" });
+    const { title, category, location } = req.body;
 
-    let imageUrl = article.image;
-    let oldImagePath = imageUrl ? imageUrl.split("/uploads/")[1] : null;
-
+    let imageUrl = null;
     if (req.file) {
-      const filePath = `articles/${Date.now()}-${req.file.originalname}`;
+      console.log('Uploading new image to Supabase...');
+      const filePath = `article/${Date.now()}-${req.file.originalname}`;
       const { data, error } = await supabase.storage
         .from("uploads")
         .upload(filePath, req.file.buffer, { contentType: req.file.mimetype });
 
-      if (error) throw error;
-      imageUrl = supabase.storage.from("uploads").getPublicUrl(filePath).data.publicUrl;
-
-      if (oldImagePath) {
-        await supabase.storage.from("uploads").remove([oldImagePath]);
+      if (error) {
+        console.error('Error uploading image:', error);
+        throw error;
       }
+      imageUrl = `${supabase.storage.from("uploads").getPublicUrl(filePath).data.publicUrl}`;
+      console.log('New image uploaded successfully:', imageUrl);
     }
 
-    await Article.updateArticle(req.params.id, {
-      title: req.body.title,
-      category: req.body.category,
-      location: req.body.location,
-      image: imageUrl,
-    });
+    console.log('Data to update:', { title, category, location, image: imageUrl });
 
-    res.json({ message: "Article updated" });
+    const { error } = await supabase
+      .from('articles')
+      .update({ title, category, location, image: imageUrl })
+      .eq('id', req.params.id);
+
+    if (error) throw error;
+
+    res.json({ message: "Article updated successfully" });
   } catch (error) {
+    console.error('Error in updateArticle:', error.message);
     res.status(500).json({ error: error.message });
   }
 };
 
-// Hapus artikel
 exports.deleteArticle = async (req, res) => {
   try {
-    const article = await Article.getById(req.params.id);
-    if (!article) return res.status(404).json({ message: "Article not found" });
+    console.log(`Deleting article with ID: ${req.params.id}`);
 
-    if (article.image) {
-      let oldImagePath = article.image.split("/uploads/")[1];
-      await supabase.storage.from("uploads").remove([oldImagePath]);
+    const { data: article, error: fetchError } = await supabase
+      .from('articles')
+      .select('image')
+      .eq('id', req.params.id)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching article:', fetchError.message);
+      throw new Error('Failed to fetch article for deletion.');
     }
 
-    await Article.deleteArticle(req.params.id);
-    res.json({ message: "Article deleted" });
+    if (article && article.image) {
+      const filePath = article.image.split('/').slice(-2).join('/');
+      console.log(`Extracted file path: ${filePath}`);
+
+      const { error: deleteError } = await supabase.storage
+        .from('uploads')
+        .remove([filePath]);
+
+      if (deleteError) {
+        console.error('Error deleting image from bucket:', deleteError.message);
+        throw new Error('Failed to delete image from bucket.');
+      }
+
+      console.log('Image deleted successfully from bucket.');
+    } else {
+      console.log('No image found for this article.');
+    }
+
+    const { error } = await supabase
+      .from('articles')
+      .delete()
+      .eq('id', req.params.id);
+
+    if (error) {
+      console.error('Error deleting article:', error.message);
+      throw new Error('Failed to delete article from the database.');
+    }
+
+    console.log('Reordering IDs after deletion...');
+    await reorderArticleIds();
+
+    res.json({ message: "Article deleted and IDs reordered successfully" });
   } catch (error) {
+    console.error('Error in deleteArticle:', error.message);
     res.status(500).json({ error: error.message });
   }
 };
+
+async function reorderArticleIds() {
+  const { data: articles, error } = await supabase
+    .from('articles')
+    .select('id')
+    .order('id', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching articles for reordering:', error.message);
+    return;
+  }
+
+  for (let i = 0; i < articles.length; i++) {
+    const newId = i + 1;
+    if (articles[i].id !== newId) {
+      await supabase
+        .from('articles')
+        .update({ id: newId })
+        .eq('id', articles[i].id);
+    }
+  }
+}
+

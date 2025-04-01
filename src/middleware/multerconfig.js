@@ -1,28 +1,9 @@
 const multer = require('multer');
-const fs = require('fs');
-const path = require('path');
 
-const uploadDir = path.join(__dirname, '../uploads');
+// Konfigurasi penyimpanan untuk multer (gunakan memori untuk Supabase)
+const storage = multer.memoryStorage(); // File akan disimpan di memori, bukan di disk
 
-// Middleware untuk memastikan folder "uploads" ada sebelum upload dilakukan
-function ensureUploadsFolder(req, res, next) {
-    if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-        console.log('Folder uploads dibuat');
-    }
-    next();
-}
+// Konfigurasi multer
+const upload = multer({ storage });
 
-// Konfigurasi penyimpanan untuk multer
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
-    }
-});
-
-const upload = multer({ storage: storage });
-
-module.exports = { upload, ensureUploadsFolder };
+module.exports = { upload };

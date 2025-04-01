@@ -52,8 +52,9 @@
     </table>
 
     <script>
-        const API_URL = 'http://localhost:3306/articles';
+        const API_URL = 'http://localhost:3000/articles';
 
+        // Fetch all articles and populate the table
         async function fetchArticles() {
             const response = await fetch(API_URL);
             const articles = await response.json();
@@ -66,7 +67,9 @@
                     <td>${article.title}</td>
                     <td>${article.category}</td>
                     <td>${article.location}</td>
-                    <td><img src="./uploads/${article.image}" width="100"></td>
+                    <td>
+                        <img src="${article.image}" alt="Article Image" width="100" onerror="this.onerror=null;this.src='default-image.jpg';">
+                    </td>
                     <td>
                         <button onclick="editArticle(${article.id}, '${article.title}', '${article.category}', '${article.location}', '${article.image}')">Edit</button>
                         <button onclick="deleteArticle(${article.id})">Delete</button>
@@ -76,6 +79,7 @@
             });
         }
 
+        // Save or update an article
         async function saveArticle(event) {
             event.preventDefault();
             const id = document.getElementById('article-id').value;
@@ -98,25 +102,24 @@
             fetchArticles();
         }
 
+        // Delete an article
         async function deleteArticle(id) {
             await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
             fetchArticles();
         }
 
+        // Populate the form for editing an article
         function editArticle(id, title, category, location, image) {
-        document.getElementById('article-id').value = id;
-        document.getElementById('title').value = title;
-        document.getElementById('category').value = category;
-        document.getElementById('location').value = location;
+            document.getElementById('article-id').value = id;
+            document.getElementById('title').value = title;
+            document.getElementById('category').value = category;
+            document.getElementById('location').value = location;
+        }
 
-        // Mengatur kategori yang sesuai
-        document.getElementById('category').value = category.toUpperCase(); 
-
-        // Menampilkan nama gambar lama (jika ada)
-        document.getElementById('image').setAttribute("data-existing", image);
-    }
-
+        // Event listener for form submission
         document.getElementById('article-form').addEventListener('submit', saveArticle);
+
+        // Fetch articles on page load
         fetchArticles();
     </script>
 </body>
