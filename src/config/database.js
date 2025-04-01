@@ -1,7 +1,15 @@
 const { Sequelize } = require('sequelize');
 const dotenv = require('dotenv');
+const fs = require('fs');
 
 dotenv.config();
+
+try {
+  require('pg');
+  console.log('pg is installed');
+} catch (err) {
+  console.error('pg is NOT installed:', err);
+}
 
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: 'postgres',
